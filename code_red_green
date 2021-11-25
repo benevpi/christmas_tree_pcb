@@ -1,0 +1,76 @@
+import time
+import board
+from rainbowio import colorwheel
+import neopixel
+import pwmio
+import digitalio
+
+pixel_pin = board.GP28
+num_pixels = 7
+
+pixels = neopixel.NeoPixel(pixel_pin, num_pixels, brightness=0.3, auto_write=False)
+
+led_1 = led = digitalio.DigitalInOut(board.GP4)
+led_2 = led = digitalio.DigitalInOut(board.GP5)
+
+led_1.direction = digitalio.Direction.OUTPUT
+led_2.direction = digitalio.Direction.OUTPUT
+
+def color_chase(color, wait):
+    for i in range(num_pixels):
+        pixels[i] = color
+        time.sleep(wait)
+        pixels.show()
+
+def rainbow_cycle(wait):
+    global leds_1_value
+    global leds_2_value
+    global leds_1_direction
+    global leds_2_direction
+    global leds_step
+    for j in range(255):
+        for i in range(num_pixels):
+            rc_index = (i * 256 // num_pixels) + j
+            pixels[i] = colorwheel(rc_index & 255)
+        pixels.show()
+        
+        leds_1pin.duty_cycle = leds_1_value
+        leds_2pin.duty_cycle = leds_2_value
+        
+        leds_1_value = leds_1_value + (leds_1_direction * leds_step)
+        leds_2_value = leds_2_value + (leds_2_direction * leds_step)
+        
+        if (leds_1_value > 65000):
+            leds_1_value = 65000
+            leds_1_direction = -1
+        if (leds_1_value < 0):
+            leds_1_value = 0
+            leds_1_direction = 1
+            
+        if (leds_2_value > 65000):
+            leds_2_value = 65000
+            leds_2_direction = -1
+        if (leds_2_value < 0):
+            leds_2_value = 0
+            leds_2_direction = 1
+        
+        time.sleep(wait)
+
+
+RED = (255, 0, 0)
+YELLOW = (255, 200, 0)
+GREEN = (0, 255, 0)
+CYAN = (0, 255, 255)
+BLUE = (0, 0, 255)
+PURPLE = (180, 0, 255)
+
+sleep_time = 0.05
+
+while True:
+    color_chase(RED, sleep_time)  # Increase the number to slow down the color chase
+    led_1.value = True
+    led_2.value = False
+    #color_chase(YELLOW, sleep_time)
+    color_chase(GREEN, sleep_time)
+    led_1.value = False
+    led_2.value = True
