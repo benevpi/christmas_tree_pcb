@@ -1,0 +1,114 @@
+import time
+import board
+from rainbowio import colorwheel
+import neopixel
+import pwmio
+import digitalio
+from adafruit_led_animation.animation.comet import Comet
+from adafruit_led_animation.color import (
+    RED,
+    GREEN,
+    PURPLE,
+    WHITE,
+    AMBER,
+    JADE,
+    TEAL,
+    PINK,
+    MAGENTA,
+    ORANGE,
+)
+
+leds_1pin = pwmio.PWMOut(board.GP4, frequency=5000, duty_cycle=0)
+leds_2pin = pwmio.PWMOut(board.GP5, frequency=5000, duty_cycle=0)
+
+leds_1_value = 0
+leds_2_value = 65000
+
+leds_1_direction = 1
+leds_2_direction = -1
+
+leds_step = 500
+
+pixel_pin = board.GP28
+num_pixels = 7
+
+pixels = neopixel.NeoPixel(pixel_pin, num_pixels, brightness=0.3, auto_write=False)
+pixels2 = neopixel.NeoPixel(board.GP2, 45, brightness=0.3, auto_write=False)
+
+
+comet_1 = Comet(pixels2, speed=0.05, color=PURPLE, tail_length=5, bounce=True)
+
+'''
+led_1 = led = digitalio.DigitalInOut(board.GP4)
+led_2 = led = digitalio.DigitalInOut(board.GP5)
+
+led_1.direction = digitalio.Direction.OUTPUT
+led_2.direction = digitalio.Direction.OUTPUT
+'''
+
+def color_chase(color, wait):
+    for i in range(num_pixels):
+        pixels[i] = color
+        time.sleep(wait)
+        pixels.show()
+
+def rainbow_cycle(wait):
+    global leds_1_value
+    global leds_2_value
+    global leds_1_direction
+    global leds_2_direction
+    global leds_step
+    for j in range(255):
+        
+        for i in range(num_pixels):
+            rc_index = (i * 256 // num_pixels) + j
+            pixels[i] = colorwheel(rc_index & 255)
+        pixels.show()
+        time.sleep(wait)
+        comet_1.animate()
+
+
+        leds_1pin.duty_cycle = leds_1_value
+        leds_2pin.duty_cycle = leds_2_value
+
+        leds_1_value = leds_1_value + (leds_1_direction * leds_step)
+        leds_2_value = leds_2_value + (leds_2_direction * leds_step)
+
+        if (leds_1_value > 65000):
+            leds_1_value = 65000
+            leds_1_direction = -1
+        if (leds_1_value < 0):
+            leds_1_value = 0
+            leds_1_direction = 1
+
+        if (leds_2_value > 65000):
+            leds_2_value = 65000
+            leds_2_direction = -1
+        if (leds_2_value < 0):
+            leds_2_value = 0
+            leds_2_direction = 1
+
+
+        
+
+RED = (255, 0, 0)
+YELLOW = (255, 200, 0)
+GREEN = (0, 255, 0)
+CYAN = (0, 255, 255)
+BLUE = (0, 0, 255)
+PURPLE = (180, 0, 255)
+
+sleep_time = 0.1
+
+while True:
+    
+    #color_chase(RED, sleep_time)  # Increase the number to slow down the color chase
+    #led_1.value = True
+    #led_2.value = False
+    #color_chase(YELLOW, sleep_time)
+    #color_chase(GREEN, sleep_time)
+    #led_1.value = False
+    #led_2.value = True
+    #color_chase(YELLOW, sleep_time)
+
+    rainbow_cycle(0.01)  # Increase the number to slow down the rainbow
